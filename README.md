@@ -16,6 +16,88 @@ The current v1 model set targets three practical workloads:
 | `text` | text detector + text recognizer | plain OCR text |
 | `mixed` | formula detector + formula recognizer + text detector + text recognizer + layout merge | structured Markdown-ready blocks |
 
+## Using MathCraft OCR
+
+This repository stores the model artifacts. Users normally install the runtime package from PyPI; the runtime then downloads and verifies these release assets automatically.
+
+CPU backend:
+
+```bash
+pip install "mathcraft-ocr[cpu]"
+```
+
+GPU backend:
+
+```bash
+pip install "mathcraft-ocr[gpu]"
+```
+
+Use only one ONNX Runtime backend in a clean environment. `onnxruntime` and `onnxruntime-gpu` should not be installed together.
+
+Runtime inspection:
+
+```bash
+mathcraft doctor --provider auto
+mathcraft models check
+```
+
+Warm up models before the first recognition:
+
+```bash
+mathcraft warmup --profile mixed --provider auto
+```
+
+Image recognition:
+
+```bash
+mathcraft ocr page.png --profile mixed --provider auto --output result.md
+mathcraft ocr formula.png --profile formula --json
+```
+
+Python API:
+
+```python
+from mathcraft_ocr import MathCraftRuntime
+
+runtime = MathCraftRuntime(provider_preference="auto")
+result = runtime.recognize_mixed("page.png")
+
+print(result.text)
+for block in result.blocks:
+    print(block.role, block.kind, block.text[:80])
+```
+
+The first warmup may download model archives from this repository. Slow networks are expected to take longer; the runtime does not treat a long first download as a recognition failure.
+
+## Model Download and Cache Repair
+
+On first use, MathCraft checks the local model cache against `models.v1.json`. If a model directory is missing, incomplete, or has a checksum mismatch, only the affected model is downloaded again from this repository's release assets.
+
+Default writable model root:
+
+```text
+%APPDATA%\MathCraft\models
+```
+
+Custom model root:
+
+```bash
+set MATHCRAFT_HOME=D:\MathCraft\models
+```
+
+Offline applications may bundle the same model directory as a read-only root. Missing or repaired files are still written to the user model root, not into the bundled application directory.
+
+## LaTeXSnipper Users
+
+LaTeXSnipper already integrates MathCraft OCR. In normal use, you do not need to install this package manually. The dependency wizard deploys the runtime, and the application warms up or repairs the model cache in the background.
+
+Use this repository directly only when:
+
+- you want to inspect the exact model artifacts used by MathCraft OCR;
+- you are building a custom offline package;
+- you are using `mathcraft-ocr` as a standalone Python package;
+- you need to mirror the release assets for a controlled deployment environment.
+
 ## Model Set
 
 Active release: `v1.0.0`

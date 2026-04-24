@@ -156,25 +156,25 @@ The following images are generated from MathCraft's structured block contract. E
 
 Formula-heavy English mathematical prose with dense inline and display formulae.
 
-![Abstract Algebra page 18 debug blocks](assets/abstract_algebra_p018_debug_blocks.png)
+<img width="1700" height="2200" alt="debug_blocks" src="https://github.com/user-attachments/assets/855d0694-4068-4e32-ac5e-80f0c4178332" />
 
 ### Dynamics journal, page 5
 
 Formula-dominant journal page with display equations, anchors, labels, headers, and page numbers.
 
-![Dynamics page 5 debug blocks](assets/dynamics_p005_debug_blocks.png)
+<img width="1700" height="2200" alt="debug_blocks" src="https://github.com/user-attachments/assets/b1498ee9-32fd-4d56-bbfb-876881758587" />
 
 ### Chinese lecture note, page 1
 
 Chinese mathematical document page with mixed text and formula blocks.
 
-![Chinese lecture note page 1 debug blocks](assets/qing_shu_p001_debug_blocks.png)
+<img width="1654" height="2339" alt="debug_blocks" src="https://github.com/user-attachments/assets/5d153b2d-d089-4ee2-9ee7-c7f52eb099c9" />
 
 ### Limits and series, page 1
 
 Sparse title/cover-style page used to check that the document engine does not overfit dense pages.
 
-![Limits and series page 1 debug blocks](assets/limits_p001_debug_blocks.png)
+<img width="1221" height="1898" alt="debug_blocks" src="https://github.com/user-attachments/assets/6c6404e0-bea4-4811-b135-feff3a063a18" />
 
 ## Why MathCraft Performs Well
 

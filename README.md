@@ -33,13 +33,13 @@ mathcraft warmup --profile mixed --provider auto
 Recognize an image:
 
 ```powershell
-mathcraft ocr "C:\Users\senina\OneDrive\图片\Windows 聚焦壁纸\测试公式.png" --profile formula --provider auto --json
+mathcraft ocr "C:\path\to\formula.png" --profile formula --provider auto --json
 ```
 
 Mixed OCR to Markdown:
 
 ```powershell
-mathcraft ocr "C:\Users\senina\Desktop\page.png" --profile mixed --provider auto --output result.md
+mathcraft ocr "C:\path\to\page.png" --profile mixed --provider auto --output result.md
 ```
 
 PowerShell custom model cache:
@@ -63,7 +63,7 @@ Open a new terminal after `setx`.
 from mathcraft_ocr import MathCraftRuntime
 
 runtime = MathCraftRuntime(provider_preference="auto")
-result = runtime.recognize_mixed(r"C:\Users\senina\Desktop\page.png")
+result = runtime.recognize_mixed(r"C:\path\to\page.png")
 
 print(result.text)
 for block in result.blocks:

@@ -1,77 +1,103 @@
 # MathCraft Models
 
-MathCraft Models is the model artifact repository for **MathCraft OCR**, the ONNX-only OCR runtime used by LaTeXSnipper.
+Model assets for **MathCraft OCR**, the ONNX-only OCR runtime used by LaTeXSnipper.
 
-The goal of this repository is to make OCR model delivery explicit, reproducible, and independent from upstream implicit cache behavior. Every active model is distributed as a versioned release asset with a stable MathCraft-owned model ID, a manifest entry, and a SHA-256 checksum.
+MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a compact ONNX model set. This repository provides the release assets used by the PyPI package `mathcraft-ocr` and by LaTeXSnipper.
 
-## Abstract
+## Quick Start
 
-MathCraft OCR is designed for mathematical documents where text, inline formulae, display equations, headers, page numbers, and multi-column layouts have to be recovered together. The runtime uses a compact ONNX model set and a structured block contract instead of relying on heavyweight PyTorch runtime imports or hidden first-run model downloads.
+Install the runtime in a clean Python environment.
 
-The current v1 model set targets three practical workloads:
+CPU:
 
-| Profile | Components | Output |
-| --- | --- | --- |
-| `formula` | formula detector + formula recognizer | LaTeX formula text |
-| `text` | text detector + text recognizer | plain OCR text |
-| `mixed` | formula detector + formula recognizer + text detector + text recognizer + layout merge | structured Markdown-ready blocks |
-
-## Using MathCraft OCR
-
-This repository stores the model artifacts. Users normally install the runtime package from PyPI; the runtime then downloads and verifies these release assets automatically.
-
-CPU backend:
-
-```bash
+```powershell
 pip install "mathcraft-ocr[cpu]"
 ```
 
-GPU backend:
+GPU:
 
-```bash
+```powershell
 pip install "mathcraft-ocr[gpu]"
 ```
 
-Use only one ONNX Runtime backend in a clean environment. `onnxruntime` and `onnxruntime-gpu` should not be installed together.
+Use only one ONNX Runtime backend in the same environment. Do not install `onnxruntime` and `onnxruntime-gpu` together.
 
-Runtime inspection:
+Check the runtime:
 
-```bash
+```powershell
 mathcraft doctor --provider auto
 mathcraft models check
-```
-
-Warm up models before the first recognition:
-
-```bash
 mathcraft warmup --profile mixed --provider auto
 ```
 
-Image recognition:
+Recognize an image:
 
-```bash
-mathcraft ocr page.png --profile mixed --provider auto --output result.md
-mathcraft ocr formula.png --profile formula --json
+```powershell
+mathcraft ocr "C:\Users\senina\OneDrive\图片\Windows 聚焦壁纸\测试公式.png" --profile formula --provider auto --json
 ```
 
-Python API:
+Mixed OCR to Markdown:
+
+```powershell
+mathcraft ocr "C:\Users\senina\Desktop\page.png" --profile mixed --provider auto --output result.md
+```
+
+PowerShell custom model cache:
+
+```powershell
+$env:MATHCRAFT_HOME="D:\MathCraft\models"
+mathcraft doctor --provider auto
+```
+
+Persistent user-level cache path:
+
+```powershell
+setx MATHCRAFT_HOME "D:\MathCraft\models"
+```
+
+Open a new terminal after `setx`.
+
+## Python API
 
 ```python
 from mathcraft_ocr import MathCraftRuntime
 
 runtime = MathCraftRuntime(provider_preference="auto")
-result = runtime.recognize_mixed("page.png")
+result = runtime.recognize_mixed(r"C:\Users\senina\Desktop\page.png")
 
 print(result.text)
 for block in result.blocks:
     print(block.role, block.kind, block.text[:80])
 ```
 
-The first warmup may download model archives from this repository. Slow networks are expected to take longer; the runtime does not treat a long first download as a recognition failure.
+## Profiles
 
-## Model Download and Cache Repair
+| Profile | Use Case | Output |
+| --- | --- | --- |
+| `formula` | Formula screenshots | LaTeX formula text |
+| `text` | Plain text OCR | Text |
+| `mixed` | Text + formula documents | Markdown-ready structured text |
 
-On first use, MathCraft checks the local model cache against `models.v1.json`. If a model directory is missing, incomplete, or has a checksum mismatch, only the affected model is downloaded again from this repository's release assets.
+## Model Set
+
+Active release: `v1.0.0`
+
+| Model ID | Runtime | Purpose |
+| --- | --- | --- |
+| `mathcraft-formula-det` | ONNX | Mathematical formula region detection |
+| `mathcraft-formula-rec` | ONNX | Formula-to-LaTeX recognition |
+| `mathcraft-text-det` | ONNX | Fast multilingual text detection |
+| `mathcraft-text-rec` | ONNX | Fast multilingual text recognition |
+
+Release assets:
+
+```text
+mathcraft-formula-det.zip
+mathcraft-formula-rec.zip
+mathcraft-text-det.zip
+mathcraft-text-rec.zip
+SHA256SUMS.txt
+```
 
 Default writable model root:
 
@@ -79,160 +105,11 @@ Default writable model root:
 %APPDATA%\MathCraft\models
 ```
 
-Custom model root:
+The runtime checks the manifest before initialization. Missing or incomplete model folders are repaired automatically by downloading only the affected model asset.
 
-```bash
-set MATHCRAFT_HOME=D:\MathCraft\models
-```
+## Results
 
-Offline applications may bundle the same model directory as a read-only root. Missing or repaired files are still written to the user model root, not into the bundled application directory.
-
-## LaTeXSnipper Users
-
-LaTeXSnipper already integrates MathCraft OCR. In normal use, you do not need to install this package manually. The dependency wizard deploys the runtime, and the application warms up or repairs the model cache in the background.
-
-Use this repository directly only when:
-
-- you want to inspect the exact model artifacts used by MathCraft OCR;
-- you are building a custom offline package;
-- you are using `mathcraft-ocr` as a standalone Python package;
-- you need to mirror the release assets for a controlled deployment environment.
-
-## Model Set
-
-Active release: `v1.0.0`
-
-| Model ID | Runtime | Files | Purpose |
-| --- | --- | --- | --- |
-| `mathcraft-formula-det` | ONNX | `mathcraft-mfd.onnx` | Mathematical formula region detection |
-| `mathcraft-formula-rec` | ONNX | encoder/decoder ONNX models, tokenizer and generation configs | Formula-to-LaTeX recognition |
-| `mathcraft-text-det` | ONNX | `ppocrv5_mobile_det.onnx` | Fast multilingual text detection |
-| `mathcraft-text-rec` | ONNX | `ppocrv5_mobile_rec.onnx`, `ppocrv5_keys.txt` | Fast multilingual text recognition |
-
-Removed from the active v1 runtime:
-
-- PyTorch-only layout models
-- PyTorch-only table recognition models
-- legacy cache-compatible model names
-- hidden dependency on `torch`
-
-## Design Principles
-
-1. **ONNX-only inference**
-
-   Runtime inference is performed through ONNX Runtime providers. GPU acceleration is selected through `CUDAExecutionProvider` when available, with CPU as the portable baseline.
-
-2. **Manifest-first model management**
-
-   Model availability is checked by a local manifest. Missing or incomplete files are detected before runtime initialization and repaired by downloading the corresponding release asset.
-
-3. **Stable model directories**
-
-   Model directories use MathCraft-owned names. This prevents upstream cache layout changes from breaking LaTeXSnipper.
-
-4. **Structured OCR blocks**
-
-   The runtime returns block-level geometry and roles, not only plain text. This allows the PDF document engine to reason about reading order, formulas, headings, headers, page numbers, and columns.
-
-5. **No hidden first-run side effects**
-
-   Model downloads, cache repair, provider selection, and warmup are explicit. A broken cache is treated as a recoverable state, not as a vague recognition failure.
-
-## Runtime Architecture
-
-```text
-image / PDF page
-  |
-  |-- formula detector -----------+
-  |                               |
-  |-- text detector -- mask/split +--> OCR regions
-                                  |
-                                  +--> formula recognizer
-                                  +--> text recognizer
-                                  |
-                                  v
-                         MathCraftBlock stream
-                                  |
-                                  v
-              page-aware layout ordering and role assignment
-                                  |
-                                  v
-                  Markdown / TeX document export pipeline
-```
-
-Key layout features:
-
-- page-aware block ordering
-- column-aware reading order
-- formula/text overlap arbitration
-- display formula promotion for large formulas, matrices, aligned equations, and array-like structures
-- header, footer, and page-number filtering
-- debug visualization through `debug_blocks.png` and `debug_blocks.html`
-
-## Baseline: Block/Layout Regression v4
-
-The following metrics come from the local `block_layout_regression_v4` suite. They are **layout regression telemetry**, not manually labeled OCR accuracy scores. They are intended to track throughput, block structure, role assignment, and document-engine stability across representative English, Chinese, formula-heavy, and mixed-layout pages.
-
-Environment:
-
-- Provider: `CUDAExecutionProvider`
-- Runtime: MathCraft OCR v1, ONNX-only
-- Scope: single-page mixed OCR + structured block layout + Markdown export
-- Cases: 10 pages across 5 PDF sources
-
-Aggregate telemetry:
-
-| Metric | Value |
-| --- | ---: |
-| Pages | 10 |
-| Total blocks | 495 |
-| Total text characters | 21,417 |
-| Non-empty Markdown lines | 304 |
-| Mean page time | 8.34 s |
-| Fastest page | 1.33 s |
-| Slowest page | 18.53 s |
-
-Role distribution:
-
-| Role | Count |
-| --- | ---: |
-| paragraph | 348 |
-| formula | 127 |
-| heading | 7 |
-| header | 5 |
-| formula_anchor | 4 |
-| formula_label | 2 |
-| page_number | 2 |
-
-Signal flags:
-
-| Flag | Count |
-| --- | ---: |
-| top_margin | 22 |
-| display_formula | 20 |
-| low_score | 16 |
-| bottom_margin | 10 |
-| header | 5 |
-| page_number | 2 |
-
-Per-page telemetry:
-
-| Case | Page | Time | Blocks | Characters | Lines |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `brouwer_p001` | 1 | 18.53 s | 33 | 1,571 | 20 |
-| `brouwer_p004` | 4 | 8.67 s | 84 | 2,087 | 32 |
-| `abstract_algebra_p001` | 1 | 1.33 s | 2 | 40 | 2 |
-| `abstract_algebra_p018` | 18 | 11.82 s | 145 | 3,285 | 64 |
-| `limits_p001` | 1 | 3.29 s | 11 | 162 | 7 |
-| `limits_p012` | 12 | 8.11 s | 37 | 2,283 | 29 |
-| `qing_shu_p001` | 1 | 4.95 s | 23 | 235 | 15 |
-| `largest_chinese_p009` | 9 | 6.97 s | 39 | 1,252 | 33 |
-| `dynamics_p001` | 1 | 13.97 s | 100 | 5,720 | 64 |
-| `dynamics_p005` | 5 | 5.72 s | 21 | 4,782 | 38 |
-
-## Representative Debug Visualizations
-
-The following images are generated from MathCraft's structured block contract. Each bounding box is annotated with role, column/order metadata, score, and layout flags.
+The examples below are generated from MathCraft's structured block output. Boxes show detected roles, order, column metadata, score, and layout flags.
 
 ### Abstract Algebra, page 18
 
@@ -254,66 +131,43 @@ Chinese mathematical document page with mixed text and formula blocks.
 
 ### Limits and series, page 1
 
-Sparse title/cover-style page used to check that the document engine does not overfit dense pages.
+Sparse title/cover-style page used to check layout stability.
 
 <img width="1221" height="1898" alt="debug_blocks" src="https://github.com/user-attachments/assets/6c6404e0-bea4-4811-b135-feff3a063a18" />
 
-## Why MathCraft Performs Well
+## Benchmark Snapshot
 
-MathCraft is optimized for LaTeXSnipper's document workflow rather than generic OCR demos.
+Local `block_layout_regression_v4` telemetry:
 
-| Area | Implementation |
-| --- | --- |
-| Model lifecycle | Manifest-driven release assets with SHA-256 validation |
-| Runtime dependency | ONNX Runtime only; no PyTorch import path in active OCR |
-| First-run behavior | Explicit warmup and automatic repair for incomplete model caches |
-| Text speed | Mobile PP-OCRv5 text detector/recognizer for everyday OCR latency |
-| Formula handling | Formula detection is used before text OCR so formula regions can be masked/split |
-| Batch behavior | Formula crops are recognized in batches where possible |
-| Layout | Page-aware block ordering, role assignment, and display formula promotion |
-| Debuggability | Every regression page can emit `structured.json`, `debug_blocks.png`, and `debug_blocks.html` |
+| Metric | Value |
+| --- | ---: |
+| Pages | 10 |
+| Total blocks | 495 |
+| Text characters | 21,417 |
+| Markdown lines | 304 |
+| Mean page time | 8.34 s |
+| Fastest page | 1.33 s |
+| Slowest page | 18.53 s |
 
-Compared with implicit upstream cache-based OCR stacks, MathCraft's main advantage is not a single model trick. The improvement comes from a controlled runtime contract: deterministic model roots, explicit provider selection, recoverable downloads, structured blocks, and document-aware post-processing.
-
-## Reproducing the Regression Suite
-
-From the LaTeXSnipper repository:
-
-```powershell
-cd E:\LaTexSnipper
-src\deps\python311\python.exe scripts\run_mathcraft_pdf_regression.py `
-  --provider gpu `
-  --output test_pdf\outputs\block_layout_regression_v4
-```
-
-Each case produces:
+Environment:
 
 ```text
-document_engine.md
-structured.json
-debug_blocks.png
-debug_blocks.html
+Provider: CUDAExecutionProvider
+Runtime: MathCraft OCR v1
+Backend: ONNX Runtime
 ```
 
-## Release Asset Contract
+## Why It Is Stable
 
-Each model is published as a ZIP asset:
+- ONNX Runtime only, no active PyTorch inference dependency.
+- Stable MathCraft-owned model IDs and folders.
+- Manifest-based file checks and cache repair.
+- Formula detection before text OCR.
+- Structured blocks for headings, paragraphs, display formulae, headers, page numbers, and columns.
 
-```text
-mathcraft-formula-det.zip
-mathcraft-formula-rec.zip
-mathcraft-text-det.zip
-mathcraft-text-rec.zip
-SHA256SUMS.txt
-```
+## LaTeXSnipper
 
-The LaTeXSnipper manifest points to these release URLs and validates the expected files. A missing or incomplete user cache is repaired by downloading the affected model into the writable user model root, while bundled offline models remain read-only.
-
-Default user model root:
-
-```text
-%APPDATA%\MathCraft\models
-```
+LaTeXSnipper already integrates MathCraft OCR. Normal users do not need to install this package manually. Use this repository when you need standalone OCR, mirrored model assets, or an offline package.
 
 Bundled offline model root:
 
@@ -321,6 +175,4 @@ Bundled offline model root:
 <LaTeXSnipper>\_internal\MathCraft\models
 ```
 
-## License and Provenance
-
-This repository distributes model artifacts for the MathCraft OCR runtime. Upstream model provenance should be tracked per release asset and preserved in release notes. MathCraft-owned directory names are used for runtime stability; internal filenames may retain upstream-compatible names where that improves traceability.
+Missing or repaired files are written to the user model root, not into the bundled read-only directory.

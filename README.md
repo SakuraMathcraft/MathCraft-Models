@@ -40,6 +40,7 @@ Mixed OCR to Markdown:
 
 ```powershell
 mathcraft ocr "C:\path\to\page.png" --profile mixed --provider auto --output result.md
+mathcraft ocr "C:\path\to\page.png" --profile mixed --provider auto --output-dir "D:\MathCraft\outputs"
 ```
 
 PowerShell custom model cache:

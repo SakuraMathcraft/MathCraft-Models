@@ -112,6 +112,20 @@ Persist the custom root for future PowerShell sessions:
 setx MATHCRAFT_HOME "D:\MathCraft\models"
 ```
 
+Restore the default user cache root:
+
+```powershell
+[Environment]::SetEnvironmentVariable("MATHCRAFT_HOME", $null, "User")
+Remove-Item Env:\MATHCRAFT_HOME -ErrorAction SilentlyContinue
+mathcraft doctor --provider auto
+```
+
+Open a new PowerShell window after removing the persistent variable. The default root is:
+
+```text
+%APPDATA%\MathCraft\models
+```
+
 Model artifacts are downloaded from the MathCraft-Models release assets declared in `mathcraft_ocr/manifests/models.v1.json`.
 
 ## Runtime Profiles

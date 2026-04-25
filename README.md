@@ -71,6 +71,20 @@ setx MATHCRAFT_HOME "D:\MathCraft\models"
 
 Open a new terminal after `setx`.
 
+Restore the default cache path:
+
+```powershell
+[Environment]::SetEnvironmentVariable("MATHCRAFT_HOME", $null, "User")
+Remove-Item Env:\MATHCRAFT_HOME -ErrorAction SilentlyContinue
+mathcraft doctor --provider auto
+```
+
+Open a new terminal after removing the persistent variable. The default root is:
+
+```text
+%APPDATA%\MathCraft\models
+```
+
 ## Python API
 
 ```python

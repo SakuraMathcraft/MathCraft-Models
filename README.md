@@ -2,7 +2,7 @@
 
 Model assets for **MathCraft OCR**, the ONNX-only OCR runtime used by LaTeXSnipper.
 
-MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a compact ONNX model set. This repository provides the release assets used by the PyPI package `mathcraft-ocr` and by LaTeXSnipper.
+MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a compact ONNX model set. This repository provides the model release assets and the source package for the PyPI package `mathcraft-ocr` used by LaTeXSnipper.
 
 ## Quick Start
 
@@ -21,6 +21,13 @@ pip install "mathcraft-ocr[gpu]"
 ```
 
 Use only one ONNX Runtime backend in the same environment. Do not install `onnxruntime` and `onnxruntime-gpu` together.
+
+Current PyPI release:
+
+```powershell
+pip install -U "mathcraft-ocr[gpu]"
+mathcraft --help
+```
 
 Check the runtime:
 
@@ -41,6 +48,12 @@ Mixed OCR to Markdown:
 ```powershell
 mathcraft ocr "C:\path\to\page.png" --profile mixed --provider auto --output result.md
 mathcraft ocr "C:\path\to\page.png" --profile mixed --provider auto --output-dir "D:\MathCraft\outputs"
+```
+
+When a file is written, the CLI prints the resolved output path:
+
+```text
+[MATHCRAFT_OUTPUT] written to D:\MathCraft\outputs\page.md
 ```
 
 PowerShell custom model cache:
@@ -108,6 +121,14 @@ Default writable model root:
 
 The runtime checks the manifest before initialization. Missing or incomplete model folders are repaired automatically by downloading only the affected model asset.
 
+Interrupted downloads are resumable. Partial archives are stored under the active writable model root:
+
+```text
+<MATHCRAFT_HOME>\.downloads\<model_id>.zip.part
+```
+
+After a model archive is fully downloaded, verified, and extracted, the `.part` file is removed automatically.
+
 ## Results
 
 The examples below are generated from MathCraft's structured block output. Boxes show detected roles, order, column metadata, score, and layout flags.
@@ -163,6 +184,7 @@ Backend: ONNX Runtime
 - ONNX Runtime only, no active PyTorch inference dependency.
 - Stable MathCraft-owned model IDs and folders.
 - Manifest-based file checks and cache repair.
+- Resumable model downloads for slow or interrupted networks.
 - Formula detection before text OCR.
 - Structured blocks for headings, paragraphs, display formulae, headers, page numbers, and columns.
 

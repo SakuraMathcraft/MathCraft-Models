@@ -6,7 +6,16 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Install the runtime in a clean Python environment.
+Current PyPI release: `mathcraft-ocr 0.1.7`.
+
+Install the library and CLI without choosing an ONNX Runtime backend:
+
+```powershell
+pip install mathcraft-ocr
+mathcraft --help
+```
+
+Install exactly one ONNX Runtime backend before running OCR inference.
 
 CPU:
 
@@ -22,7 +31,7 @@ pip install "mathcraft-ocr[gpu]"
 
 Use only one ONNX Runtime backend in the same environment. Do not install `onnxruntime` and `onnxruntime-gpu` together.
 
-Current PyPI release:
+Upgrade the current release with a chosen backend:
 
 ```powershell
 pip install -U "mathcraft-ocr[gpu]"

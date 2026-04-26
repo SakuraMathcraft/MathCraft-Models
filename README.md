@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release: `mathcraft-ocr 0.1.7`.
+Current PyPI release: `mathcraft-ocr 0.1.8`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -30,6 +30,8 @@ pip install "mathcraft-ocr[gpu]"
 ```
 
 Use only one ONNX Runtime backend in the same environment. Do not install `onnxruntime` and `onnxruntime-gpu` together.
+
+LaTeXSnipper's dependency wizard selects the ONNX Runtime GPU wheel line from the detected CUDA toolkit. CUDA 11.x uses the ONNX Runtime CUDA 11 package feed, CUDA 12.x uses the stable PyPI GPU wheels, and CUDA 13.x uses the ONNX Runtime CUDA 13 nightly feed. Static `mathcraft-ocr[gpu]` package metadata cannot inspect the local CUDA toolkit, so CUDA 11.x users installing manually should use the CUDA 11 feed shown by the wizard.
 
 Upgrade the current release with a chosen backend:
 

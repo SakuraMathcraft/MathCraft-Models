@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release: `mathcraft-ocr 0.1.8`.
+Current PyPI release: `mathcraft-ocr 0.1.9`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -116,6 +116,10 @@ for block in result.blocks:
 | `formula` | Formula screenshots | LaTeX formula text |
 | `text` | Plain text OCR | Text |
 | `mixed` | Text + formula documents | Markdown-ready structured text |
+
+## Runtime Release Notes
+
+`mathcraft-ocr 0.1.9` updates the runtime-side formula recognition path with line-aware formula splitting and reassembly. This improves long multi-line formula handling without changing the active `v1.0.0` ONNX model asset set.
 
 ## Model Set
 

@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.x`.
+Current PyPI release line: `mathcraft-ocr 0.2.3`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -90,10 +90,12 @@ Remove-Item Env:\MATHCRAFT_HOME -ErrorAction SilentlyContinue
 mathcraft doctor --provider auto
 ```
 
-Open a new terminal after removing the persistent variable. The default root is:
+Open a new terminal after removing the persistent variable. The default root is platform-specific:
 
 ```text
-%APPDATA%\MathCraft\models
+Windows: %APPDATA%\MathCraft\models
+macOS: ~/Library/Application Support/LaTeXSnipper/MathCraft/models
+Linux: ${XDG_DATA_HOME:-~/.local/share}/LaTeXSnipper/MathCraft/models
 ```
 
 ## Python API
@@ -119,9 +121,9 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
-`mathcraft-ocr 0.2.x` improves runtime-side formula post-processing without changing the active `v1.0.0` ONNX model asset set. It keeps compact fraction expressions whole, avoids splitting matrix-like wide formulas, adds relation-aware `aligned` output, and retries severe segmented-line artifacts with safer whole-line or whole-image recognition.
+`mathcraft-ocr 0.2.3` fixes cross-platform hardware sizing. Memory detection now uses optional `psutil`, Windows API, POSIX `sysconf`, and macOS `vm_stat`, so CPU batch sizing no longer falls back to Windows-only memory data on Linux or macOS. It also moves the default writable model cache to platform-native user data locations on macOS and Linux. The active `v1.0.0` ONNX model asset set is unchanged.
 
-Earlier `0.2.x` releases updated the runtime-side formula recognition path with line-aware formula splitting and reassembly. This improved long multi-line formula handling without changing the active `v1.0.0` ONNX model asset set.
+Earlier `0.2.x` releases improved runtime-side formula post-processing without changing the active `v1.0.0` ONNX model asset set. They keep compact fraction expressions whole, avoid splitting matrix-like wide formulas, add relation-aware `aligned` output, and retry severe segmented-line artifacts with safer whole-line or whole-image recognition.
 
 ## Model Set
 
@@ -147,7 +149,9 @@ SHA256SUMS.txt
 Default writable model root:
 
 ```text
-%APPDATA%\MathCraft\models
+Windows: %APPDATA%\MathCraft\models
+macOS: ~/Library/Application Support/LaTeXSnipper/MathCraft/models
+Linux: ${XDG_DATA_HOME:-~/.local/share}/LaTeXSnipper/MathCraft/models
 ```
 
 The runtime checks the manifest before initialization. Missing or incomplete model folders are repaired automatically by downloading only the affected model asset.

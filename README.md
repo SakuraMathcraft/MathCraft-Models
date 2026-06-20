@@ -221,12 +221,4 @@ Backend: ONNX Runtime
 
 ## LaTeXSnipper
 
-LaTeXSnipper already integrates MathCraft OCR. Normal users do not need to install this package manually. Use this repository when you need standalone OCR, mirrored model assets, or an offline package.
-
-Bundled offline model root:
-
-```text
-<LaTeXSnipper>\_internal\MathCraft\models
-```
-
-Missing or repaired files are written to the user model root, not into the bundled read-only directory.
+LaTeXSnipper already integrates MathCraft OCR. Normal users do not need to install this package manually. 

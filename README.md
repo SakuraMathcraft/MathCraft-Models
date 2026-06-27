@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.3`.
+Current PyPI release line: `mathcraft-ocr 0.2.4`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -121,7 +121,9 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
-`mathcraft-ocr 0.2.3` fixes cross-platform hardware sizing. Memory detection now uses optional `psutil`, Windows API, POSIX `sysconf`, and macOS `vm_stat`, so CPU batch sizing no longer falls back to Windows-only memory data on Linux or macOS. It also moves the default writable model cache to platform-native user data locations on macOS and Linux. The active `v1.0.0` ONNX model asset set is unchanged.
+`mathcraft-ocr 0.2.4` fixes DirectML provider handling for RapidOCR text recognition. CUDA and TensorRT providers enable CUDA runtime options, DirectML enables DirectML runtime options, and CPU remains CPU-only. The active `v1.0.0` ONNX model asset set is unchanged.
+
+`mathcraft-ocr 0.2.3` fixes cross-platform hardware sizing. Memory detection now uses optional `psutil`, Windows API, POSIX `sysconf`, and macOS `vm_stat`, so CPU batch sizing no longer falls back to Windows-only memory data on Linux or macOS. It also moves the default writable model cache to platform-native user data locations on macOS and Linux.
 
 Earlier `0.2.x` releases improved runtime-side formula post-processing without changing the active `v1.0.0` ONNX model asset set. They keep compact fraction expressions whole, avoid splitting matrix-like wide formulas, add relation-aware `aligned` output, and retry severe segmented-line artifacts with safer whole-line or whole-image recognition.
 

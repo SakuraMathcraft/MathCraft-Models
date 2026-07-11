@@ -204,7 +204,7 @@ Sparse title/cover-style page used to check layout stability.
 
 All recorded runs used `CUDAExecutionProvider`. The datasets cover different tasks and protocols, so the rows are not a model-ranking comparison.
 
-![MathCraft OCR formula benchmark scores](benchmarks/charts/formula_quality.png)
+![Published-context UniMER-Test BLEU comparison](benchmarks/figures/unimer_public_bleu_comparison.png)
 
 See the [benchmark report, charts, provenance, and reproduction notes](benchmarks/README.md).
 

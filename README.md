@@ -194,27 +194,19 @@ Sparse title/cover-style page used to check layout stability.
 
 <img width="1221" height="1898" alt="debug_blocks" src="https://github.com/user-attachments/assets/6c6404e0-bea4-4811-b135-feff3a063a18" />
 
-## Benchmark Snapshot
+## Reproducible Benchmarks
 
-Local `block_layout_regression_v4` telemetry:
+| Benchmark | Scale | Reported result |
+| --- | ---: | --- |
+| UniMER-Test | 23,757 formulas | BLEU-4 `0.7946`; official CDM `0.9288` |
+| MathWriting test | 7,644 samples | BLEU-4 `0.5467`; official CDM `0.750`; render success `98.63%` |
+| OpenStax mixed pages | 200 pages | `0` failures, `0` empty outputs; median `6.65 s/page` |
 
-| Metric | Value |
-| --- | ---: |
-| Pages | 10 |
-| Total blocks | 495 |
-| Text characters | 21,417 |
-| Markdown lines | 304 |
-| Mean page time | 8.34 s |
-| Fastest page | 1.33 s |
-| Slowest page | 18.53 s |
+All recorded runs used `CUDAExecutionProvider`. The datasets cover different tasks and protocols, so the rows are not a model-ranking comparison.
 
-Environment:
+![MathCraft OCR formula benchmark scores](benchmarks/charts/formula_quality.png)
 
-```text
-Provider: CUDAExecutionProvider
-Runtime: MathCraft OCR v1
-Backend: ONNX Runtime
-```
+See the [benchmark report, charts, provenance, and reproduction notes](benchmarks/README.md).
 
 ## Why It Is Stable
 

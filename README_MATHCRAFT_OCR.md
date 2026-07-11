@@ -150,6 +150,10 @@ Model artifacts are downloaded from the MathCraft-Models release assets declared
 
 The actual provider is available on results through the `provider` field.
 
+## Benchmarks
+
+The active model set has checked-in results for UniMER-Test, MathWriting test, and OpenStax mixed pages. See the [published benchmark summary](https://github.com/SakuraMathcraft/MathCraft-Models/tree/main/benchmarks) and the [full reproducibility suite](https://github.com/SakuraMathcraft/LaTeXSnipper/tree/main/benchmarks/mathcraft_ocr).
+
 ## Development
 
 Run tests from the repository root:

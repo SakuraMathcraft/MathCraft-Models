@@ -1,0 +1,4 @@
+benchmark,scope,samples,provider,failures,empty_outputs,bleu4,official_cdm,prediction_render_rate,median_latency_ms
+UniMER-Test,formula OCR,23757,CUDAExecutionProvider,0,0,0.7946,0.9288,,158.5
+MathWriting test,handwritten formula OCR,7644,CUDAExecutionProvider,0,0,0.5467,0.7500,0.9863,116.7
+OpenStax mixed pages,mixed document OCR,200,CUDAExecutionProvider,0,0,,,,6650.7

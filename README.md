@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.4`.
+Current PyPI release line: `mathcraft-ocr 0.2.5`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -121,6 +121,8 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
+`mathcraft-ocr 0.2.5` improves multiline formula recognition by retaining aligned short continuation rows, excluding dark screenshot frames, and comparing uncertain wide-line segments with whole-line recognition. The `v1.0.0` formula-recognition asset now uses the MathCraft-owned `mathcraft-formula-rec` identity in its configuration; the ONNX graphs and weights are unchanged.
+
 `mathcraft-ocr 0.2.4` fixes DirectML provider handling for RapidOCR text recognition. CUDA and TensorRT providers enable CUDA runtime options, DirectML enables DirectML runtime options, and CPU remains CPU-only. The active `v1.0.0` ONNX model asset set is unchanged.
 
 `mathcraft-ocr 0.2.3` fixes cross-platform hardware sizing. Memory detection now uses optional `psutil`, Windows API, POSIX `sysconf`, and macOS `vm_stat`, so CPU batch sizing no longer falls back to Windows-only memory data on Linux or macOS. It also moves the default writable model cache to platform-native user data locations on macOS and Linux.
@@ -145,8 +147,13 @@ mathcraft-formula-det.zip
 mathcraft-formula-rec.zip
 mathcraft-text-det.zip
 mathcraft-text-rec.zip
+models.v1.json
 SHA256SUMS.txt
 ```
+
+The runtime downloads the four model archives. `models.v1.json` records their
+contents and source URLs, while `SHA256SUMS.txt` provides archive-level integrity
+checks for release verification.
 
 Default writable model root:
 

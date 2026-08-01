@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.5`.
+Current PyPI release line: `mathcraft-ocr 0.2.6`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -120,6 +120,12 @@ for block in result.blocks:
 | `mixed` | Text + formula documents | Markdown-ready structured text |
 
 ## Runtime Release Notes
+
+`mathcraft-ocr 0.2.6` improves formula, mixed-document, and PDF OCR without changing the active `v1.0.0` ONNX graphs or weights. Formula-dominant mixed images now reuse the same whole-image multiline recognition core as formula mode, improving formula completeness and consistency while preserving the dedicated text and layout pipeline for genuinely mixed content.
+
+Document reconstruction now handles narrow two-column layouts, inline formula continuations across the page midline, table-of-contents page numbers, and single-column pages with dense mathematical fragments more reliably. Reading order, column assignment, paragraph grouping, and display-formula placement are consequently more stable on mathematical PDFs.
+
+Greedy decoding removes completed rows from the active batch and stops sustained short-period token loops before they consume the full generation budget. Regression tests show approximately 35–40% faster recognition on normal PDF workloads, with more stable latency on formula-dense pages. The same safeguards prevent rare runaway decoding and avoid unnecessary memory use. Formula-only warmup now loads only the formula recognizer; mixed mode continues to load all four models.
 
 `mathcraft-ocr 0.2.5` improves multiline formula recognition by retaining aligned short continuation rows, excluding dark screenshot frames, and comparing uncertain wide-line segments with whole-line recognition. The `v1.0.0` formula-recognition asset now uses the MathCraft-owned `mathcraft-formula-rec` identity in its configuration; the ONNX graphs and weights are unchanged.
 

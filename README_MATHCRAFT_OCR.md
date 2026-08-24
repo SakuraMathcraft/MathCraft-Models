@@ -148,11 +148,7 @@ Model artifacts are downloaded from the MathCraft-Models release assets declared
 - `cpu`: force CPU.
 - `gpu`: request CUDA-capable ONNX Runtime.
 
-The actual provider is available on results through the `provider` field.
-
-## Benchmarks
-
-The active model set has checked-in results for UniMER-Test, MathWriting test, and OpenStax mixed pages. See the [published benchmark summary](https://github.com/SakuraMathcraft/MathCraft-Models/tree/main/benchmarks) and the [full reproducibility suite](https://github.com/SakuraMathcraft/LaTeXSnipper/tree/main/benchmarks/mathcraft_ocr).
+The actual provider is available on recognition results through the `provider` field. Doctor and warmup reports also expose `device_id`, `device_name`, `device_uuid`, and `device_verified` under `provider_info`. GPU sessions bind the reported `device_id` explicitly; `device_verified` becomes true only after the runtime confirms the device used by initialized inference sessions.
 
 ## Development
 
@@ -173,4 +169,4 @@ python -m build --no-isolation --outdir .\release_assets\mathcraft-ocr-package\d
 
 ## License
 
-MIT. See `LICENSE`.
+GPL-3.0-only. See `LICENSE`.

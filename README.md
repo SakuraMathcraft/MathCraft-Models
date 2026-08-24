@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.6`.
+Current PyPI release line: `mathcraft-ocr 0.2.8`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -121,11 +121,11 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
-`mathcraft-ocr 0.2.6` improves formula, mixed-document, and PDF OCR without changing the active `v1.0.0` ONNX graphs or weights. Formula-dominant mixed images now reuse the same whole-image multiline recognition core as formula mode, improving formula completeness and consistency while preserving the dedicated text and layout pipeline for genuinely mixed content.
+`mathcraft-ocr 0.2.8` makes GPU identity session-bound and verifiable. CUDA, TensorRT, and DirectML sessions now receive an explicit `device_id`; native ONNX Runtime and RapidOCR sessions validate the active provider and device after initialization, while doctor, warmup, and serialized provider information expose the resolved device ID, name, UUID, and verification state. Hardware reporting and recognition batch sizing consequently follow the GPU actually selected for inference rather than the first adapter returned by the operating system. The active `v1.0.0` ONNX graphs and weights are unchanged.
 
-Document reconstruction now handles narrow two-column layouts, inline formula continuations across the page midline, table-of-contents page numbers, and single-column pages with dense mathematical fragments more reliably. Reading order, column assignment, paragraph grouping, and display-formula placement are consequently more stable on mathematical PDFs.
+`mathcraft-ocr 0.2.7` makes explicit GPU execution strict instead of silently falling back to CPU. ONNX Runtime fallback is disabled for native and RapidOCR sessions, unavailable or mismatched GPU providers now fail with a provider-specific error, and these failures are no longer misclassified as damaged model files. Automatic provider selection can still choose CPU when no supported GPU provider is available. The active `v1.0.0` ONNX graphs and weights are unchanged.
 
-Greedy decoding removes completed rows from the active batch and stops sustained short-period token loops before they consume the full generation budget. Regression tests show approximately 35–40% faster recognition on normal PDF workloads, with more stable latency on formula-dense pages. The same safeguards prevent rare runaway decoding and avoid unnecessary memory use. Formula-only warmup now loads only the formula recognizer; mixed mode continues to load all four models.
+`mathcraft-ocr 0.2.6` improves formula, mixed-document, and PDF OCR without changing the active `v1.0.0` ONNX graphs or weights. Formula-dominant mixed images reuse the whole-image multiline recognition core; document reconstruction better handles narrow columns, midline formula continuations, table-of-contents page numbers, and dense mathematical fragments; greedy decoding removes completed rows and stops sustained token loops, yielding approximately 35–40% faster normal PDF recognition with more stable formula-dense latency; and formula-only warmup now loads only the formula recognizer.
 
 `mathcraft-ocr 0.2.5` improves multiline formula recognition by retaining aligned short continuation rows, excluding dark screenshot frames, and comparing uncertain wide-line segments with whole-line recognition. The `v1.0.0` formula-recognition asset now uses the MathCraft-owned `mathcraft-formula-rec` identity in its configuration; the ONNX graphs and weights are unchanged.
 

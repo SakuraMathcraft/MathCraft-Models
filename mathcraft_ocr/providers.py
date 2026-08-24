@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import importlib
-import os
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+from .devices import confirm_device_identity, resolve_device_identity
 from .errors import ProviderError
 
 
@@ -23,7 +23,10 @@ class ProviderInfo:
     device: str
     gpu_requested: bool
     gpu_runtime_ok: bool
-    cpu_fallback: bool
+    device_id: int | None = None
+    device_name: str = ""
+    device_uuid: str = ""
+    device_verified: bool = False
 
     @property
     def use_cuda(self) -> bool:
@@ -56,41 +59,70 @@ def detect_providers(prefer: str = "auto") -> ProviderInfo:
     except Exception as exc:  # pragma: no cover - runtime environment dependent
         raise ProviderError(f"failed to query ONNX providers: {exc}") from exc
 
-    force_cpu = os.environ.get("MATHCRAFT_FORCE_ORT_CPU", "").strip() == "1"
     gpu_candidates = tuple(name for name in GPU_PROVIDER_NAMES if name in available)
     gpu_visible = bool(gpu_candidates)
-    if force_cpu:
-        return ProviderInfo(
-            available_providers=available,
-            active_provider="CPUExecutionProvider" if "CPUExecutionProvider" in available else None,
-            device="cpu",
-            gpu_requested=(prefer_norm in {"auto", "gpu"}),
-            gpu_runtime_ok=False,
-            cpu_fallback=True,
-        )
     if prefer_norm == "cpu":
-        return ProviderInfo(
+        if "CPUExecutionProvider" not in available:
+            raise ProviderError(f"CPUExecutionProvider unavailable: {available}")
+        return _provider_info(
             available_providers=available,
-            active_provider="CPUExecutionProvider" if "CPUExecutionProvider" in available else None,
+            active_provider="CPUExecutionProvider",
             device="cpu",
             gpu_requested=False,
             gpu_runtime_ok=False,
-            cpu_fallback=False,
         )
     if gpu_visible:
-        return ProviderInfo(
+        return _provider_info(
             available_providers=available,
             active_provider=gpu_candidates[0],
             device="gpu",
             gpu_requested=True,
             gpu_runtime_ok=True,
-            cpu_fallback=False,
         )
-    return ProviderInfo(
+    if prefer_norm == "gpu":
+        raise ProviderError(
+            f"GPU provider was requested but none is available: {available}"
+        )
+    if "CPUExecutionProvider" not in available:
+        raise ProviderError(f"no supported ONNX execution provider is available: {available}")
+    return _provider_info(
         available_providers=available,
-        active_provider="CPUExecutionProvider" if "CPUExecutionProvider" in available else None,
+        active_provider="CPUExecutionProvider",
         device="cpu",
-        gpu_requested=(prefer_norm in {"auto", "gpu"}),
+        gpu_requested=False,
         gpu_runtime_ok=False,
-        cpu_fallback=(prefer_norm == "gpu"),
+    )
+
+
+def _provider_info(
+    *,
+    available_providers: tuple[str, ...],
+    active_provider: str,
+    device: str,
+    gpu_requested: bool,
+    gpu_runtime_ok: bool,
+) -> ProviderInfo:
+    device_id = 0 if active_provider in GPU_PROVIDER_NAMES else None
+    identity = resolve_device_identity(active_provider, device_id)
+    return ProviderInfo(
+        available_providers=available_providers,
+        active_provider=active_provider,
+        device=device,
+        gpu_requested=gpu_requested,
+        gpu_runtime_ok=gpu_runtime_ok,
+        device_id=identity.device_id,
+        device_name=identity.name,
+        device_uuid=identity.uuid,
+        device_verified=identity.verified,
+    )
+
+
+def confirm_provider_device(provider_info: ProviderInfo) -> ProviderInfo:
+    identity = confirm_device_identity(provider_info.active_provider, provider_info.device_id)
+    return replace(
+        provider_info,
+        device_id=identity.device_id,
+        device_name=identity.name,
+        device_uuid=identity.uuid,
+        device_verified=identity.verified,
     )

@@ -69,9 +69,12 @@ def provider_info_to_json(provider_info) -> dict:
         "available_providers": list(provider_info.available_providers),
         "active_provider": provider_info.active_provider,
         "device": provider_info.device,
+        "device_id": provider_info.device_id,
+        "device_name": provider_info.device_name,
+        "device_uuid": provider_info.device_uuid,
+        "device_verified": provider_info.device_verified,
         "gpu_requested": provider_info.gpu_requested,
         "gpu_runtime_ok": provider_info.gpu_runtime_ok,
-        "cpu_fallback": provider_info.cpu_fallback,
         "use_cuda": provider_info.use_cuda,
         "use_dml": provider_info.use_dml,
     }

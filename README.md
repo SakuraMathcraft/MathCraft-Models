@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.8`.
+Current PyPI release line: `mathcraft-ocr 0.2.9`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -23,15 +23,33 @@ CPU:
 pip install "mathcraft-ocr[cpu]"
 ```
 
-GPU:
+CUDA 13 GPU (current PyPI default, Python 3.11+):
 
 ```powershell
 pip install "mathcraft-ocr[gpu]"
 ```
 
-Use only one ONNX Runtime backend in the same environment. Do not install `onnxruntime` and `onnxruntime-gpu` together.
+CUDA 12 GPU:
 
-LaTeXSnipper's dependency wizard selects the ONNX Runtime GPU wheel line from the detected CUDA toolkit. CUDA 11.x uses the ONNX Runtime CUDA 11 package feed, CUDA 12.x uses the stable PyPI GPU wheels, and CUDA 13.x uses the ONNX Runtime CUDA 13 nightly feed. Static `mathcraft-ocr[gpu]` package metadata cannot inspect the local CUDA toolkit, so CUDA 11.x users installing manually should use the CUDA 11 feed shown by the wizard.
+```powershell
+pip install "mathcraft-ocr[gpu-cu12]"
+```
+
+DirectML on Windows:
+
+```powershell
+pip install "mathcraft-ocr[directml]"
+```
+
+OpenVINO on Windows or Linux:
+
+```powershell
+pip install "mathcraft-ocr[openvino]"
+```
+
+Use only one ONNX Runtime backend in the same environment. Do not mix the CPU, CUDA/TensorRT, DirectML, or OpenVINO runtime distributions.
+
+LaTeXSnipper's dependency wizard selects the ONNX Runtime GPU line from the detected CUDA toolkit. CUDA 11.x uses ONNX Runtime 1.20 from the official CUDA 11 feed, CUDA 12.x uses ONNX Runtime 1.21-1.26 from PyPI, and CUDA 13.x uses ONNX Runtime 1.27-1.29 from PyPI. Static package metadata cannot inspect the local CUDA toolkit, so CUDA 11.x users installing manually should use the official CUDA 11 feed shown by the wizard.
 
 Upgrade the current release with a chosen backend:
 
@@ -120,6 +138,8 @@ for block in result.blocks:
 | `mixed` | Text + formula documents | Markdown-ready structured text |
 
 ## Runtime Release Notes
+
+`mathcraft-ocr 0.2.9` modernizes the runtime and dependency contract without changing the active `v1.0.0` ONNX graphs or weights. The package now supports Python 3.10-3.13 and current NumPy, Pillow, and ONNX Runtime lines; provider selection covers CUDA, TensorRT, DirectML, CoreML, OpenVINO, and CPU with explicit ordering and provider options. ONNX Runtime failure fallback is disabled during session creation and execution, active providers are verified after initialization, and TensorRT remains an explicit choice because its first-use engine build can be expensive while CUDA and platform-native accelerators remain suitable automatic defaults.
 
 `mathcraft-ocr 0.2.8` makes GPU identity session-bound and verifiable. CUDA, TensorRT, and DirectML sessions now receive an explicit `device_id`; native ONNX Runtime and RapidOCR sessions validate the active provider and device after initialization, while doctor, warmup, and serialized provider information expose the resolved device ID, name, UUID, and verification state. Hardware reporting and recognition batch sizing consequently follow the GPU actually selected for inference rather than the first adapter returned by the operating system. The active `v1.0.0` ONNX graphs and weights are unchanged.
 

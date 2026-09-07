@@ -6,7 +6,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.2.9`.
+Current PyPI release line: `mathcraft-ocr 0.3.0`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -138,6 +138,8 @@ for block in result.blocks:
 | `mixed` | Text + formula documents | Markdown-ready structured text |
 
 ## Runtime Release Notes
+
+`mathcraft-ocr 0.3.0` makes JSONL worker failures fully diagnosable without changing successful recognition results or the public Python API. Failed worker responses now preserve the original exception type, message, and child-process traceback, allowing host applications to keep stable user-facing errors while recording the complete inference failure in their runtime logs. The active `v1.0.0` ONNX graphs and weights are unchanged.
 
 `mathcraft-ocr 0.2.9` modernizes the runtime and dependency contract without changing the active `v1.0.0` ONNX graphs or weights. The package now supports Python 3.10-3.13 and current NumPy, Pillow, and ONNX Runtime lines; provider selection covers CUDA, TensorRT, DirectML, CoreML, OpenVINO, and CPU with explicit ordering and provider options. ONNX Runtime failure fallback is disabled during session creation and execution, active providers are verified after initialization, and TensorRT remains an explicit choice because its first-use engine build can be expensive while CUDA and platform-native accelerators remain suitable automatic defaults.
 

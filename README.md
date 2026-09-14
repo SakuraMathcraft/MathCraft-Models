@@ -6,7 +6,8 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 
 ## Quick Start
 
-Current PyPI release line: `mathcraft-ocr 0.3.1`.
+[![PyPI version](https://img.shields.io/pypi/v/mathcraft-ocr)](https://pypi.org/project/mathcraft-ocr/)
+Current PyPI release line: [`mathcraft-ocr 0.3.1`](https://pypi.org/project/mathcraft-ocr/)
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 

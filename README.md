@@ -7,7 +7,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 ## Quick Start
 
 [![PyPI version](https://img.shields.io/pypi/v/mathcraft-ocr)](https://pypi.org/project/mathcraft-ocr/)
-Current PyPI release line: [`mathcraft-ocr 0.3.1`](https://pypi.org/project/mathcraft-ocr/)
+Package version: [`mathcraft-ocr 0.3.2`](https://pypi.org/project/mathcraft-ocr/).
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -50,7 +50,7 @@ pip install "mathcraft-ocr[openvino]"
 
 Use only one ONNX Runtime backend in the same environment. Do not mix the CPU, CUDA/TensorRT, DirectML, or OpenVINO runtime distributions.
 
-LaTeXSnipper's dependency wizard selects the ONNX Runtime GPU line from the detected CUDA toolkit. CUDA 11.x uses ONNX Runtime 1.20 from the official CUDA 11 feed, CUDA 12.x uses ONNX Runtime 1.21-1.26 from PyPI, and CUDA 13.x uses ONNX Runtime 1.27-1.29 from PyPI. Static package metadata cannot inspect the local CUDA toolkit, so CUDA 11.x users installing manually should use the official CUDA 11 feed shown by the wizard.
+LaTeXSnipper desktop installers include a pinned private inference runtime, native libraries, and models. The backend extras above configure standalone library and CLI environments; install the native runtime libraries required by the chosen ONNX Runtime backend.
 
 Upgrade the current release with a chosen backend:
 
@@ -140,6 +140,8 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
+`mathcraft-ocr 0.3.2` improves CUDA formula decoding by keeping encoder activations on the selected device between decoder steps through ONNX Runtime I/O binding, avoiding repeated activation uploads. Model-cache inspection now verifies file SHA-256 digests, manifests and ZIP members receive stricter validation, and resumable downloads are keyed by model content identity. Formula processors and tokenizers load local files only. Embedded hosts can explicitly configure worker resource paths and automatic downloads; standalone library and CLI downloads remain enabled by default. JSONL worker clients must now send `"protocol": 1` and a non-empty string `id`, with protocol-tagged replies and an added runtime handshake. The active `v1.0.0` ONNX graphs and weights are unchanged.
+
 `mathcraft-ocr 0.3.0–0.3.1` improves failure diagnostics across recognition and warmup. JSONL worker errors preserve the original exception type, message, and traceback; failed warmup components also retain exception types and tracebacks, including the original error chain when cache repair fails. Host applications can use these details to provide clear runtime logs while keeping user-facing messages concise. Successful recognition behavior and the active `v1.0.0` ONNX graphs and weights are unchanged.
 
 `mathcraft-ocr 0.2.9` modernizes the runtime and dependency contract without changing the active `v1.0.0` ONNX graphs or weights. The package now supports Python 3.10-3.13 and current NumPy, Pillow, and ONNX Runtime lines; provider selection covers CUDA, TensorRT, DirectML, CoreML, OpenVINO, and CPU with explicit ordering and provider options. ONNX Runtime failure fallback is disabled during session creation and execution, active providers are verified after initialization, and TensorRT remains an explicit choice because its first-use engine build can be expensive while CUDA and platform-native accelerators remain suitable automatic defaults.
@@ -192,12 +194,12 @@ macOS: ~/Library/Application Support/LaTeXSnipper/MathCraft/models
 Linux: ${XDG_DATA_HOME:-~/.local/share}/LaTeXSnipper/MathCraft/models
 ```
 
-The runtime checks the manifest before initialization. Missing or incomplete model folders are repaired automatically by downloading only the affected model asset.
+The runtime verifies model files against the manifest SHA-256 digests before initialization. Missing or corrupt model folders are repaired automatically by downloading only the affected model asset.
 
 Interrupted downloads are resumable. Partial archives are stored under the active writable model root:
 
 ```text
-<MATHCRAFT_HOME>\.downloads\<model_id>.zip.part
+<MATHCRAFT_HOME>\.downloads\<model_id>-<content_sha256>.zip.part
 ```
 
 After a model archive is fully downloaded, verified, and extracted, the `.part` file is removed automatically.
@@ -255,4 +257,4 @@ See the [benchmark report, charts, provenance, and reproduction notes](benchmark
 
 ## LaTeXSnipper
 
-LaTeXSnipper already integrates MathCraft OCR. Normal users do not need to install this package manually. 
+LaTeXSnipper already integrates MathCraft OCR. Normal users do not need to install this package manually.

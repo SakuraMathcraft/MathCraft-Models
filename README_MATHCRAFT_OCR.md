@@ -170,6 +170,13 @@ Packaged desktop workers use only the installed model component and disable auto
 | `text` | text detector + text recognizer | OCR text and text blocks |
 | `mixed` | formula detector + formula recognizer + text detector + text recognizer | Markdown-ready structured blocks |
 
+Each profile verifies its model files before initialization and reuses the
+initialized sessions and verified paths for subsequent recognition requests.
+`check_models()` and `mathcraft models check` always verify current file contents.
+Restart the process after replacing model resources to load the updated files.
+Formula decoder sessions expose only the last token's logits through an in-memory
+graph transformation; model files and weights on disk remain unchanged.
+
 ## Provider Selection
 
 `provider_preference` accepts:

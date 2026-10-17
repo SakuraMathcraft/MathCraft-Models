@@ -43,7 +43,7 @@ def audit_private_gpu_libraries(native: Path) -> dict[str, str]:
             if psapi.GetModuleFileNameExW(process, modules[index], buffer, len(buffer)):
                 paths.append(Path(buffer.value))
     else:
-        for line in Path("/proc/self/maps").read_text().splitlines():
+        for line in Path("/proc/self/maps").read_text(encoding="utf-8").splitlines():
             parts = line.split(maxsplit=5)
             if len(parts) == 6 and parts[5].startswith("/"):
                 paths.append(Path(parts[5]))

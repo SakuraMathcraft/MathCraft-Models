@@ -119,6 +119,8 @@ Each JSONL request must include `"protocol": 1` and a non-empty string `id`, for
 
 Responses include the same protocol and request ID, an `ok` flag, and either a `result` or an `error` object. Errors retain their exception type, message, and traceback.
 
+Worker input, output, and diagnostics use UTF-8 on every platform. Hosts must encode requests and decode responses as UTF-8; protocol data is decoded strictly so invalid bytes are reported instead of silently changing recognition text. CLI console output and exported text files also use UTF-8.
+
 ## Model Cache
 
 MathCraft reads models from a platform-specific default user data root:

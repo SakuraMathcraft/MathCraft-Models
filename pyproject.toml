@@ -92,16 +92,16 @@ exclude = ["src*", "test*", "scripts*", "docs*", "release_assets*", "build*", "d
 mathcraft_ocr = ["manifests/*.json", "vendor/LICENSE.onnx"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["."]
 testpaths = ["test"]
-addopts = ["--ignore=python311", "--ignore=tools/deps", "--ignore=.venv", "--ignore=build", "--ignore=dist"]
+addopts = ["--ignore=.venv", "--ignore=build", "--ignore=dist"]
 
 [tool.vulture]
-paths = ["src"]
+paths = ["mathcraft_ocr"]
 exclude = [
   "build/",
-  "python311/",
-  "tools/deps/python311/"
+  "dist/",
+  ".venv/"
 ]
 min_confidence = 70
 sort_by_size = true

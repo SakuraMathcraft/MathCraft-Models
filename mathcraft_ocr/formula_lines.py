@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .image import normalize_formula_polarity
 from .latex_alignment import align_latex_relation_lines
 
 
@@ -123,12 +124,15 @@ def _split_formula_rows(rgb: np.ndarray) -> tuple[FormulaLineCrop, ...]:
 
 
 def _as_rgb_array(image_rgb: np.ndarray) -> np.ndarray:
+    """Normalize polarity before cropping changes foreground density."""
     array = np.asarray(image_rgb)
     if array.ndim == 2:
-        return np.stack([array, array, array], axis=-1).astype(np.uint8, copy=False)
-    if array.ndim == 3 and array.shape[2] >= 3:
-        return array[:, :, :3].astype(np.uint8, copy=False)
-    raise ValueError(f"unsupported formula image shape: {array.shape}")
+        array = np.stack([array, array, array], axis=-1)
+    elif array.ndim == 3 and array.shape[2] >= 3:
+        array = array[:, :, :3]
+    else:
+        raise ValueError(f"unsupported formula image shape: {array.shape}")
+    return normalize_formula_polarity(array.astype(np.uint8, copy=False))
 
 
 def _ink_mask(rgb: np.ndarray) -> np.ndarray:
@@ -402,15 +406,18 @@ def _split_wide_line_segments(line: FormulaLineCrop) -> tuple[FormulaLineCrop, .
     if _has_large_vertical_delimiter(mask):
         return (line,)
 
-    column_counts = mask.sum(axis=0)
-    column_threshold = max(2, int(round(height * 0.035)))
-    column_has_ink = column_counts >= column_threshold
+    # A cut must cross actual whitespace, including at superscript height.
+    column_has_ink = np.asarray(mask.any(axis=0))
     ink_bands = _row_bands(column_has_ink)
     if len(ink_bands) < 2:
         return (line,)
 
-    min_gap = max(14, int(round(width * 0.025)))
-    min_segment_width = max(48, int(round(width * 0.12)))
+    ink_rows = np.flatnonzero(mask.any(axis=1))
+    ink_height = int(ink_rows[-1] - ink_rows[0] + 1)
+    # Glyph-relative spacing stays useful when a formula becomes very long.
+    min_gap = max(6, int(round(ink_height * 0.45)))
+    min_segment_width = max(48, ink_height * 4)
+    min_remainder_width = max(48, ink_height * 3)
     split_points: list[int] = []
     for (_left_a, right_a), (left_b, _right_b) in zip(
         ink_bands, ink_bands[1:], strict=False
@@ -419,7 +426,10 @@ def _split_wide_line_segments(line: FormulaLineCrop) -> tuple[FormulaLineCrop, .
         if gap < min_gap:
             continue
         split_at = right_a + 1 + gap // 2
-        if split_at < min_segment_width or width - split_at < min_segment_width:
+        if (
+            split_at - ink_bands[0][0] < min_segment_width
+            or ink_bands[-1][1] - split_at < min_remainder_width
+        ):
             continue
         if split_points and split_at - split_points[-1] < min_segment_width:
             continue

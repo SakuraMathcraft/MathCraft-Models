@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
 import shutil
+import ssl
 import stat
+import sys
 import tempfile
 import time
 import urllib.request
@@ -13,9 +16,27 @@ from .cache import model_dir, model_file_valid
 from .errors import DownloadUnavailableError, ModelCacheError
 from .manifest import ModelSpec, model_relative_path
 
+logger = logging.getLogger(f"latexsnipper.{__name__}")
+
 
 def _is_placeholder_source(source: str) -> bool:
     return source.startswith("placeholder://") or source.endswith(".invalid")
+
+
+def _fallback_ssl_context() -> ssl.SSLContext | None:
+    """Provide a CA bundle for macOS Python before its certificates are installed."""
+    if sys.platform != "darwin":
+        return None
+    paths = ssl.get_default_verify_paths()
+    if paths.cafile or paths.capath:
+        return None
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except (ImportError, OSError) as exc:
+        logger.warning("Could not load the fallback CA bundle: %s", exc)
+        return None
 
 
 def _verify_model_dir(target: Path, spec: ModelSpec) -> None:
@@ -84,7 +105,10 @@ def _download_archive_file(
 
     request = urllib.request.Request(source, headers=headers)
     # The manifest parser restricts model download sources to HTTPS.
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # nosec B310
+    context = _fallback_ssl_context()
+    with urllib.request.urlopen(  # nosec B310
+        request, timeout=timeout, context=context
+    ) as response:
         status = int(getattr(response, "status", 200) or 200)
         content_length = _content_length(response.headers)
         content_range_total = _content_range_total(response.headers)

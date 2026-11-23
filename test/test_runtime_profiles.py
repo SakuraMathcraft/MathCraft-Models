@@ -8,6 +8,7 @@ import pytest
 import mathcraft_ocr.runtime as runtime_module
 from mathcraft_ocr.errors import ModelCacheError
 from mathcraft_ocr.manifest import load_manifest
+from mathcraft_ocr.profiles import CPU_PROVIDER, CUDA_PROVIDER, model_id_for_role
 from mathcraft_ocr.providers import ProviderInfo
 from mathcraft_ocr.runtime import MathCraftRuntime
 
@@ -23,6 +24,7 @@ def cpu_provider(monkeypatch):
     )
     monkeypatch.setattr(runtime_module, "detect_providers", lambda **kwargs: provider)
     monkeypatch.setattr(runtime_module, "confirm_provider_device", lambda value: value)
+    return provider
 
 
 def write_model(root, manifest, model_id):
@@ -46,7 +48,8 @@ def test_custom_manifest_reports_undeclared_model_and_accepts_completion(
     tmp_path, monkeypatch, profile, auto_download
 ):
     manifest = load_manifest()
-    required = runtime_module.PROFILE_MODEL_IDS[profile]
+    roles = runtime_module.PROFILE_MODEL_IDS[profile]
+    required = tuple(model_id_for_role(role, CPU_PROVIDER) for role in roles)
     missing_id = required[0]
     missing_spec = manifest.models.pop(missing_id)
     for model_id in required[1:]:
@@ -55,10 +58,7 @@ def test_custom_manifest_reports_undeclared_model_and_accepts_completion(
     monkeypatch.setattr(
         runtime_module,
         "ONNX_WARMUP_HANDLERS",
-        {
-            model_id: lambda path, provider: warmed.append(path.name)
-            for model_id in required
-        },
+        {role: lambda path, provider: warmed.append(path.name) for role in roles},
     )
     monkeypatch.setattr(
         runtime_module,
@@ -88,7 +88,8 @@ def test_declared_missing_files_are_downloaded_before_warmup(
     tmp_path, monkeypatch, profile
 ):
     manifest = load_manifest()
-    required = runtime_module.PROFILE_MODEL_IDS[profile]
+    roles = runtime_module.PROFILE_MODEL_IDS[profile]
+    required = tuple(model_id_for_role(role, CPU_PROVIDER) for role in roles)
     downloaded, warmed = [], []
 
     def download(spec, *, target_root, **kwargs):
@@ -99,10 +100,7 @@ def test_declared_missing_files_are_downloaded_before_warmup(
     monkeypatch.setattr(
         runtime_module,
         "ONNX_WARMUP_HANDLERS",
-        {
-            model_id: lambda path, provider: warmed.append(path.name)
-            for model_id in required
-        },
+        {role: lambda path, provider: warmed.append(path.name) for role in roles},
     )
     runtime = MathCraftRuntime(
         cache_dir=tmp_path, manifest=manifest, auto_download=True
@@ -111,3 +109,72 @@ def test_declared_missing_files_are_downloaded_before_warmup(
     assert plan.ready
     assert tuple(downloaded) == required
     assert tuple(warmed) == required
+
+
+def test_cuda_mixed_selects_one_matching_formula_pair(
+    tmp_path, monkeypatch, cpu_provider
+):
+    manifest = load_manifest()
+    expected = (
+        "mathcraft-formula-det-cuda-fp16",
+        "mathcraft-formula-rec-cuda-fp16",
+        "mathcraft-text-det",
+        "mathcraft-text-rec",
+    )
+    for model_id in expected:
+        write_model(tmp_path, manifest, model_id)
+    provider = replace(cpu_provider, active_provider=CUDA_PROVIDER, device="gpu")
+    monkeypatch.setattr(runtime_module, "detect_providers", lambda **_kwargs: provider)
+    warmed = []
+    monkeypatch.setattr(
+        runtime_module,
+        "ONNX_WARMUP_HANDLERS",
+        {
+            role: lambda path, info: warmed.append((path.name, info.active_provider))
+            for role in runtime_module.PROFILE_MODEL_IDS["mixed"]
+        },
+    )
+    runtime = MathCraftRuntime(
+        cache_dir=tmp_path, manifest=manifest, auto_download=False
+    )
+    plan = runtime.warmup("mixed")
+    assert plan.ready
+    assert plan.required_models == expected
+    assert warmed == [(name, CUDA_PROVIDER) for name in expected]
+
+
+@pytest.mark.parametrize(
+    ("backend", "requested"),
+    [
+        ("TensorrtExecutionProvider", "auto"),
+        ("DmlExecutionProvider", "auto"),
+        ("CoreMLExecutionProvider", "auto"),
+        ("OpenVINOExecutionProvider", "auto"),
+        (CPU_PROVIDER, "fp32"),
+        (CUDA_PROVIDER, "fp32"),
+    ],
+)
+def test_standalone_formula_selects_fp32(
+    tmp_path, monkeypatch, cpu_provider, backend, requested
+):
+    manifest = load_manifest()
+    expected = "mathcraft-formula-rec"
+    write_model(tmp_path, manifest, expected)
+    provider = replace(cpu_provider, active_provider=backend)
+    monkeypatch.setattr(runtime_module, "detect_providers", lambda **_: provider)
+    seen = []
+    monkeypatch.setitem(
+        runtime_module.ONNX_WARMUP_HANDLERS,
+        expected,
+        lambda path, info, **_: seen.append((path.name, info.active_provider)),
+    )
+    runtime = MathCraftRuntime(
+        cache_dir=tmp_path,
+        manifest=manifest,
+        formula_variant=requested,
+        auto_download=False,
+    )
+    plan = runtime.warmup("formula")
+    assert plan.ready
+    assert plan.required_models == (expected,)
+    assert seen == [(expected, backend)]

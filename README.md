@@ -7,7 +7,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 ## Quick Start
 
 [![PyPI version](https://img.shields.io/pypi/v/mathcraft-ocr)](https://pypi.org/project/mathcraft-ocr/)
-Package version: [`mathcraft-ocr 0.3.2`](https://pypi.org/project/mathcraft-ocr/).
+Runtime version: `mathcraft-ocr 0.3.3`.
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -50,7 +50,7 @@ pip install "mathcraft-ocr[openvino]"
 
 Use only one ONNX Runtime backend in the same environment. Do not mix the CPU, CUDA/TensorRT, DirectML, or OpenVINO runtime distributions.
 
-LaTeXSnipper desktop installers include a pinned private inference runtime, native libraries, and models. The backend extras above configure standalone library and CLI environments; install the native runtime libraries required by the chosen ONNX Runtime backend.
+Standalone formula and mixed OCR select INT8 for the CPU Provider, FP16 for the CUDA Provider, and the original FP32 weights for TensorRT, DirectML, CoreML, and OpenVINO when available. Use `--formula-variant fp32` to select the original weights explicitly, including on CPU or CUDA. Standalone installs require native libraries for the chosen Provider. LaTeXSnipper's offline CPU and NVIDIA GPU installers carry their edition's optimized model set and private runtime.
 
 Upgrade the current release with a chosen backend:
 
@@ -140,6 +140,8 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
+`mathcraft-ocr 0.3.3` adds MathCraft Models v2.0.0 weights. The CPU Provider selects INT8 formula detection and recognition with incremental KV caching. The NVIDIA CUDA Provider selects FP16 detection and a fused decoder with device-resident KV caching. Standalone CLI and Python callers can select the original FP32 formula models and other supported Providers. Each offline desktop edition bundles its own optimized formula models and the common text models.
+
 `mathcraft-ocr 0.3.2` speeds up CUDA formula decoding and model initialization, improves dark-background formula and mixed-document recognition, and makes wide-formula segmentation safer for matrices and scripts. It also hardens model-cache validation, resumable downloads, and UTF-8 worker/CLI protocols, and fixes tiny-image text detection. JSONL requests require `"protocol": 1` and a non-empty string `id`. The active `v1.0.0` model weights are unchanged.
 
 `mathcraft-ocr 0.3.0–0.3.1` improves failure diagnostics across recognition and warmup. JSONL worker errors preserve the original exception type, message, and traceback; failed warmup components also retain exception types and tracebacks, including the original error chain when cache repair fails. Host applications can use these details to provide clear runtime logs while keeping user-facing messages concise. Successful recognition behavior and the active `v1.0.0` ONNX graphs and weights are unchanged.
@@ -162,29 +164,18 @@ Earlier `0.2.x` releases improved runtime-side formula post-processing without c
 
 ## Model Set
 
-Active release: `v1.0.0`
+Active release: [`v2.0.0`](https://github.com/SakuraMathcraft/MathCraft-Models/releases/tag/v2.0.0)
 
-| Model ID | Runtime | Purpose |
+| Model set | Provider | Package assets |
 | --- | --- | --- |
-| `mathcraft-formula-det` | ONNX | Mathematical formula region detection |
-| `mathcraft-formula-rec` | ONNX | Formula-to-LaTeX recognition |
-| `mathcraft-text-det` | ONNX | Fast multilingual text detection |
-| `mathcraft-text-rec` | ONNX | Fast multilingual text recognition |
+| CPU INT8 formula OCR | CPU | `mathcraft-formula-det-cpu-int8.zip`, `mathcraft-formula-rec-cpu-int8.zip` |
+| CUDA FP16 formula OCR | NVIDIA CUDA | `mathcraft-formula-det-cuda-fp16.zip`, `mathcraft-formula-rec-cuda-fp16.zip` |
+| Common text OCR | Shared | `mathcraft-text-det.zip`, `mathcraft-text-rec.zip` |
 
-Release assets:
-
-```text
-mathcraft-formula-det.zip
-mathcraft-formula-rec.zip
-mathcraft-text-det.zip
-mathcraft-text-rec.zip
-models.v1.json
-SHA256SUMS.txt
-```
-
-The runtime downloads the four model archives. `models.v1.json` records their
-contents and source URLs, while `SHA256SUMS.txt` provides archive-level integrity
-checks for release verification.
+`models.v2.json` records the individual weight files and their source URLs.
+`SHA256SUMS.txt` provides archive-level integrity checks. Standalone OCR loads
+the chosen formula models and any common text models required by the profile.
+The standalone catalog also declares the original FP32 archives for developer use.
 
 Default writable model root:
 

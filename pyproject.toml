@@ -96,6 +96,10 @@ addopts = ["--ignore=.venv", "--ignore=build", "--ignore=dist"]
 [tool.ruff]
 extend-exclude = ["**/vendor"]
 
+[tool.pyright]
+# Protobuf builds these descriptors dynamically in the generated module.
+ignore = ["mathcraft_ocr/vendor/onnx_ml_pb2.py"]
+
 [tool.vulture]
 paths = ["mathcraft_ocr"]
 exclude = [

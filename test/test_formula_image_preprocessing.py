@@ -10,6 +10,7 @@ from mathcraft_ocr.image import (
     normalize_formula_polarity,
     prepare_formula_image,
 )
+from mathcraft_ocr.providers import ProviderInfo
 
 
 def formula_strip():
@@ -143,8 +144,15 @@ def test_dark_formula_whole_line_retry_keeps_normalized_pixels(monkeypatch, tmp_
     monkeypatch.setattr(runtime_mod, "recognize_formula_images", recognize_images)
     monkeypatch.setattr(runtime_mod, "recognize_formula_image", recognize_image)
     runtime = runtime_mod.MathCraftRuntime(auto_download=False)
+    provider = ProviderInfo(
+        available_providers=("CPUExecutionProvider",),
+        active_provider="CPUExecutionProvider",
+        device="cpu",
+        gpu_requested=False,
+        gpu_runtime_ok=False,
+    )
     result = runtime._recognize_formula_rgb(
-        255 - image, None, model_dir=tmp_path, max_new_tokens=256
+        255 - image, provider, model_dir=tmp_path, max_new_tokens=256
     )
 
     assert result == ("x+y", 0.99)

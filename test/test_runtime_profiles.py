@@ -152,21 +152,30 @@ def test_cuda_mixed_selects_one_matching_formula_pair(
         ("OpenVINOExecutionProvider", "auto"),
         (CPU_PROVIDER, "fp32"),
         (CUDA_PROVIDER, "fp32"),
+        (CPU_PROVIDER, "fp32-v2"),
+        (CUDA_PROVIDER, "fp32-v2"),
+        ("DmlExecutionProvider", "fp32-v2"),
+        ("CoreMLExecutionProvider", "fp32-v2"),
+        ("OpenVINOExecutionProvider", "fp32-v2"),
+        ("TensorrtExecutionProvider", "fp32-v2"),
     ],
 )
 def test_standalone_formula_selects_fp32(
     tmp_path, monkeypatch, cpu_provider, backend, requested
 ):
     manifest = load_manifest()
-    expected = "mathcraft-formula-rec"
+    role = "mathcraft-formula-rec"
+    expected = f"{role}-fp32-v2" if requested == "fp32-v2" else role
     write_model(tmp_path, manifest, expected)
     provider = replace(cpu_provider, active_provider=backend)
     monkeypatch.setattr(runtime_module, "detect_providers", lambda **_: provider)
     seen = []
     monkeypatch.setitem(
         runtime_module.ONNX_WARMUP_HANDLERS,
-        expected,
-        lambda path, info, **_: seen.append((path.name, info.active_provider)),
+        role,
+        lambda path, info, **options: seen.append(
+            (path.name, info.active_provider, options.get("model_variant", "auto"))
+        ),
     )
     runtime = MathCraftRuntime(
         cache_dir=tmp_path,
@@ -177,4 +186,4 @@ def test_standalone_formula_selects_fp32(
     plan = runtime.warmup("formula")
     assert plan.ready
     assert plan.required_models == (expected,)
-    assert seen == [(expected, backend)]
+    assert seen == [(expected, backend, requested)]

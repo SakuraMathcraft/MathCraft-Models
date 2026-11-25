@@ -7,7 +7,7 @@ MathCraft OCR recognizes formulae, text, and mixed mathematical documents with a
 ## Quick Start
 
 [![PyPI version](https://img.shields.io/pypi/v/mathcraft-ocr)](https://pypi.org/project/mathcraft-ocr/)
-Runtime version: `mathcraft-ocr 0.3.3`.
+Source runtime version: `mathcraft-ocr 0.3.4`. The `fp32-v2` variant requires 0.3.4 or later. If PyPI offers an older version, [install from source](README_MATHCRAFT_OCR.md#installation).
 
 Install the library and CLI without choosing an ONNX Runtime backend:
 
@@ -50,7 +50,7 @@ pip install "mathcraft-ocr[openvino]"
 
 Use only one ONNX Runtime backend in the same environment. Do not mix the CPU, CUDA/TensorRT, DirectML, or OpenVINO runtime distributions.
 
-Standalone formula and mixed OCR select INT8 for the CPU Provider, FP16 for the CUDA Provider, and the original FP32 weights for TensorRT, DirectML, CoreML, and OpenVINO when available. Use `--formula-variant fp32` to select the original weights explicitly, including on CPU or CUDA. Standalone installs require native libraries for the chosen Provider. LaTeXSnipper's offline CPU and NVIDIA GPU installers carry their edition's optimized model set and private runtime.
+Standalone formula and mixed OCR select INT8 for the CPU Provider, FP16 for the CUDA Provider, and the original FP32 weights for TensorRT, DirectML, CoreML, and OpenVINO when available. Use `--formula-variant fp32` to select the original weights explicitly. Select `--formula-variant fp32-v2` or `MathCraftRuntime(formula_variant="fp32-v2")` for incremental FP32 on CPU, CUDA, TensorRT, DirectML, CoreML, or OpenVINO. CoreML execution and acceleration have not been verified on a Mac. Standalone installs require native libraries for the chosen Provider. LaTeXSnipper's offline CPU and NVIDIA GPU installers carry their edition's optimized model set and private runtime.
 
 Upgrade the current release with a chosen backend:
 
@@ -140,6 +140,8 @@ for block in result.blocks:
 
 ## Runtime Release Notes
 
+`mathcraft-ocr 0.3.4` adds the optional incremental FP32 formula recognizer to MathCraft Models v2.0.0. The decoder reuses self- and cross-attention KV caches and keeps them on the GPU when CUDA is available in the CUDA or TensorRT session chain. Mixed OCR uses the original FP32 formula detector and the shared text models. The automatic variant selection and the formula models bundled in each desktop edition stay the same.
+
 `mathcraft-ocr 0.3.3` adds MathCraft Models v2.0.0 weights. The CPU Provider selects INT8 formula detection and recognition with incremental KV caching. The NVIDIA CUDA Provider selects FP16 detection and a fused decoder with device-resident KV caching. Standalone CLI and Python callers can select the original FP32 formula models and other supported Providers. Each offline desktop edition bundles its own optimized formula models and the common text models.
 
 `mathcraft-ocr 0.3.2` speeds up CUDA formula decoding and model initialization, improves dark-background formula and mixed-document recognition, and makes wide-formula segmentation safer for matrices and scripts. It also hardens model-cache validation, resumable downloads, and UTF-8 worker/CLI protocols, and fixes tiny-image text detection. JSONL requests require `"protocol": 1` and a non-empty string `id`. The active `v1.0.0` model weights are unchanged.
@@ -170,6 +172,7 @@ Active release: [`v2.0.0`](https://github.com/SakuraMathcraft/MathCraft-Models/r
 | --- | --- | --- |
 | CPU INT8 formula OCR | CPU | `mathcraft-formula-det-cpu-int8.zip`, `mathcraft-formula-rec-cpu-int8.zip` |
 | CUDA FP16 formula OCR | NVIDIA CUDA | `mathcraft-formula-det-cuda-fp16.zip`, `mathcraft-formula-rec-cuda-fp16.zip` |
+| Incremental FP32 formula recognition | CPU, CUDA, TensorRT, DirectML, CoreML, OpenVINO | `mathcraft-formula-rec-fp32-v2.zip` |
 | Common text OCR | Shared | `mathcraft-text-det.zip`, `mathcraft-text-rec.zip` |
 
 `models.v2.json` records the individual weight files and their source URLs.
